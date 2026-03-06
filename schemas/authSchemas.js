@@ -23,3 +23,13 @@ export const loginUserSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
 });
+
+export const resendVerifySchema = Joi.object({
+  email: Joi.string()
+    .email()
+    .required()
+    .messages({
+      "any.required": "missing required field email",
+      "string.empty": "missing required field email",
+    }),
+});

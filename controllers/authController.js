@@ -53,6 +53,22 @@ export const getCurrentUser = async (req, res) => {
   });
 };
 
+export const verifyUser = async (req, res) => {
+  const { verificationToken } = req.params;
+  await authService.verifyUser(verificationToken);
+  return res.status(200).json({
+    message: "Verification successful",
+  });
+};
+
+export const resendVerify = async (req, res) => {
+  const { email } = req.body;
+  await authService.resendVerify({ email });
+  return res.status(200).json({
+    message: "Verification email sent",
+  });
+};
+
 export const updateAvatar = async (req, res) => {
   const user = req.user;
   if (!user) {
