@@ -1,3 +1,6 @@
+import path from "path";
+import fs from "fs/promises";
+import { v4 as uuidv4 } from "uuid";
 import authService from "../services/authService.js";
 import HttpError from "../helpers/HttpError.js";
 
@@ -8,6 +11,7 @@ export const registerUser = async (req, res) => {
     user: {
       email: user.email,
       subscription: user.subscription,
+      avatarURL: user.avatarURL,
     },
   });
 };
@@ -23,6 +27,7 @@ export const loginUser = async (req, res) => {
     user: {
       email: result.user.email,
       subscription: result.user.subscription,
+      avatarURL: result.user.avatarURL,
     },
   });
 };
@@ -44,5 +49,35 @@ export const getCurrentUser = async (req, res) => {
   return res.status(200).json({
     email: user.email,
     subscription: user.subscription,
+    avatarURL: user.avatarURL,
+  });
+};
+
+export const updateAvatar = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    throw HttpError(401, "Not authorized");
+  }
+
+  if (!req.file) {
+    throw HttpError(400, "No file uploaded");
+  }
+
+  const avatarsDir = path.join(process.cwd(), "public", "avatars");
+  await fs.mkdir(avatarsDir, { recursive: true });
+  const ext = path.extname(req.file.originalname) || ".jpg";
+  const filename = `${user.id}-${uuidv4()}${ext}`;
+  const destPath = path.join(avatarsDir, filename);
+  await fs.rename(req.file.path, destPath);
+  const avatarURL = `/avatars/${filename}`;
+
+  const updatedUser = await authService.updateUserAvatar(user.id, avatarURL);
+  if (!updatedUser) {
+    throw HttpError(401, "Not authorized");
+  }
+  return res.status(200).json({
+    email: user.email,
+    subscription: user.subscription,
+    avatarURL: updatedUser.avatarURL,
   });
 };

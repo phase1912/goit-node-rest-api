@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import gravatar from "gravatar";
 import User from "../db/models/user.js";
 import HttpError from "../helpers/HttpError.js";
 import { createToken } from "../helpers/jwtToken.js";
@@ -14,9 +15,11 @@ const registerUser = async ({ email, password }) => {
     throw HttpError(409, "Email in use");
   }
   const hashedPassword = await bcrypt.hash(password, 10);
+  const avatarURL = gravatar.url(email, { s: "200", d: "identicon", protocol: "https" });
   const newUser = await User.create({
     email,
     password: hashedPassword,
+    avatarURL,
   });
   return newUser;
 };
@@ -44,4 +47,13 @@ const logoutUser = async (id) => {
     return user;
 };
 
-export default { registerUser, loginUser, logoutUser, findUser };
+const updateUserAvatar = async (id, avatarURL) => {
+  const user = await User.findByPk(id);
+  if (!user) {
+    return null;
+  }
+  await user.update({ avatarURL });
+  return user;
+};
+
+export default { registerUser, loginUser, logoutUser, findUser, updateUserAvatar };
