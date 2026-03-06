@@ -15,9 +15,16 @@ const nodemailerConfig = {
 
 const transport = nodemailer.createTransport(nodemailerConfig);
 
-const sendEmail = (payload)=> {
-    const email = {...payload, from: UKR_NET_EMAIL};
-    return transport.sendMail(email);
-}
+const sendEmail = async (payload) => {
+  const email = { ...payload, from: UKR_NET_EMAIL };
+  try {
+    const info = await transport.sendMail(email);
+    console.log("[sendEmail] Sent to", payload.to, "— messageId:", info.messageId);
+    return info;
+  } catch (err) {
+    console.error("[sendEmail] Failed:", err.message);
+    throw err;
+  }
+};
 
 export default sendEmail;
